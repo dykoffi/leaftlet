@@ -11,6 +11,27 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <script src="/src/assets/wasm_exec.js"></script>
+  <script>
+    const go = new Go();
+    WebAssembly.instantiateStreaming(fetch("/src/assets/go.wasm"), go.importObject).then((result) => {
+      go.run(result.instance);
+    });
+
+    // fetch("https://gitlab.com/digitaltransport/data/africa/abidjan/-/raw/master/Donn%C3%A9es/abidjan.zip")
+    // .then((result) => {
+    //   console.log(result);
+    // }).catch((error) => {
+    //   console.log(error);
+    // });
+
+    // function sayHello() {
+    //   const message = prompt("Enter your name:");
+    //   alert(window["lab/graphql"].exports.hello(message));
+    // }
+
+    // sayHello()
+  </script>
 </body>
 
 </html>
