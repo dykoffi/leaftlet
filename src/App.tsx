@@ -22,7 +22,7 @@ function App() {
 
   useEffect(() => {
     setLoading(true)
-    fetch("https://gtfs.onrender.com/file/data?url=http://")
+    fetch(import.meta.env.VITE_API_HOST + "/file/data?url=https://raw.githubusercontent.com/dykoffi/leaftlet/main/abidjan.zip")
       .then(async (data) => {
         setGtfsData(await data.json());
         // setCurrentRoute(null)
@@ -90,7 +90,7 @@ function App() {
                       <Timeline.Item key={index} bullet={<Avatar color='blue' className='cursor-pointer' onClick={() => {
                         setMapCenter([stop.lat, stop.lon])
                       }} > {index + 1}</Avatar>} title={stop.name}>
-                        <Text size="xs" mt={4}>2 hours ago</Text>
+                        {/* <Text size="xs" mt={4}>2 hours ago</Text> */}
                       </Timeline.Item>)
                   }
                 </Timeline>
