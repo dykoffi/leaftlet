@@ -1,11 +1,19 @@
-interface Data {
-  name: string
-  agency_id: string
+interface Trip {
   shapes: [number, number][]
   stops: Stop[]
 }
 
-interface Stop {
+export interface RouteData {
+  route_name: string
+  agency_id: string
+  aller: Trip
+  retour: Trip
+}
+export interface Data {
+  [x: string]: RouteData
+}
+
+export interface Stop {
   name: string
   lat: number
   lon: number
@@ -13,12 +21,13 @@ interface Stop {
 }
 declare global {
   interface Window {
-    mapData: Data;
+    getGTFSData: () => Data;
+    gtfsFile: string;
   }
 }
 
-const data = window.mapData
-const shapes = data.shapes
-const stops = data.stops
-
-export default {shapes, stops}
+export function getGTFSData(): Promise<Data> {
+  return new Promise((resolve, reject) => {
+    resolve(window.getGTFSData())
+  })
+}

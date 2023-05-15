@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite ",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -16,7 +16,8 @@
     "leaflet": "^1.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-leaflet": "^4.2.1"
+    "react-leaflet": "^4.2.1",
+    "@data-fair/dev-server": "^1.8.4"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.3",

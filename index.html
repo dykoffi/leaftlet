@@ -6,17 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gtfs Maps</title>
-  <script src="/src/assets/wasm_exec.js"></script>
-  <script>
-    const go = new Go();
-
-    window.urlGTFSFile = "https://raw.githubusercontent.com/dykoffi/leaftlet/main/abidjan.zip"
-
-    WebAssembly.instantiateStreaming(fetch("/src/assets/go.wasm"), go.importObject).then((result) => {
-      go.run(result.instance);
-    });
-
-  </script>
+  <!-- <script> window.APPLICATION = % APPLICATION % </script> -->
 </head>
 
 <body>
