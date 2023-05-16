@@ -17,7 +17,7 @@ export interface Stop {
   name: string
   lat: number
   lon: number
-  times: string[]
+  times: [string, string][]
 }
 declare global {
   interface Window {
