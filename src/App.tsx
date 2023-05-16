@@ -4,7 +4,8 @@ import { Data, Stop } from './data/gtfs'
 import { Avatar, Grid, LoadingOverlay, SegmentedControl, Select, Stack, Text, Timeline } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { LatLng, LatLngExpression, map } from 'leaflet'
-import { IconMap2 } from '@tabler/icons-react'
+import { IconMap2, IconX } from '@tabler/icons-react'
+import { notifications } from '@mantine/notifications'
 
 
 function App() {
@@ -35,7 +36,13 @@ function App() {
           <>
             {
               gtfsData[currentRoute][currentTripDir].stops.map((stop: any, index: number) =>
-                <Marker key={index} position={[stop.lat, stop.lon]}>
+                <Marker key={index} position={[stop.lat, stop.lon]} eventHandlers={{
+                  click: (ev) => {
+                    setCurrentStop(index)
+                    setMapCenter([stop.lat, stop.lon])
+                    setMapZoom(18)
+                  }
+                }}>
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
                     ({index + 1}) {stop.name}
                   </Tooltip>
@@ -51,11 +58,17 @@ function App() {
   useEffect(() => {
     setLoading(true)
     fetch(import.meta.env.VITE_API_HOST + "/file/data?url=" + window.gtfsFile)
-      .then(async (data) => {
-        setGtfsData(await data.json());
-        // setCurrentRoute(null)
-        // setCurrentTripDir("aller")
-        // setSearch("")
+      .then(async (res) => {
+        if (res.status == 200) {
+          setGtfsData(await res.json());
+        } else {
+          notifications.show({
+            title: 'Erreur',
+            message: 'Une erreur s\'est produite lors du traitement du gtfs',
+            color: 'red',
+            icon: <IconX />
+          })
+        }
         setLoading(false)
       })
   }, [])
@@ -87,8 +100,8 @@ function App() {
             />
             {
               currentRoute === null ? <Stack align='center' justify='center' className='h-full'>
-                <IconMap2 size={150} color='gray' />
-                <Text fz={25} color='gray'>Aucune route sélectionnée</Text>
+                <IconMap2 size={88} opacity={0.2} color='gray' />
+                <Text fz={18} opacity={0.5} color='gray'>Aucune route sélectionnée</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
@@ -100,21 +113,17 @@ function App() {
                     </Text>
                   </Stack>
                   <Stack>
-
                     <SegmentedControl
                       value={currentTripDir}
                       data={[
                         { label: 'Aller', value: 'aller' },
                         { label: 'Retour', value: 'retour' },
                       ]}
-
                       color='gray'
-
                       onChange={(value: "aller" | "retour") => {
                         setCurrentTripDir(value)
                         setCurrentStop(0)
                         setMapCenter([gtfsData[currentRoute][value].stops[0].lat, gtfsData[currentRoute][value].stops[0].lon])
-
                       }}
                     />
                   </Stack>
