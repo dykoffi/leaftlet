@@ -36,19 +36,13 @@ function App() {
           <>
             {
               gtfsData[currentRoute][currentTripDir].stops.map((stop: any, index: number) =>
-                <Marker key={index} position={[stop.lat, stop.lon]} eventHandlers={{
-                  click: (ev) => {
-                    setCurrentStop(index)
-                    setMapCenter([stop.lat, stop.lon])
-                    setMapZoom(18)
-                  }
-                }}>
+                <Marker key={index} position={[stop.lat, stop.lon]} >
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
                     ({index + 1}) {stop.name}
                   </Tooltip>
                 </Marker>)
             }
-            <Polyline pathOptions={{ color: "lime", opacity: 0.7, weight: 8 }} positions={gtfsData[currentRoute][currentTripDir].shapes} />
+            <Polyline pathOptions={{ color: "teal", opacity: 0.45, weight: 10 }} positions={gtfsData[currentRoute][currentTripDir].shapes} />
           </>
       }
     </>
@@ -57,19 +51,29 @@ function App() {
 
   useEffect(() => {
     setLoading(true)
+    notifications.show({
+      id: 'loading',
+      title: "Notifications",
+      message: "Traitement du fichier gtfs en cours",
+      loading: true,
+      autoClose: false
+    })
     fetch(import.meta.env.VITE_API_HOST + "/file/data?url=" + window.gtfsFile)
       .then(async (res) => {
         if (res.status == 200) {
           setGtfsData(await res.json());
         } else {
           notifications.show({
+            id: 'error',
             title: 'Erreur',
             message: 'Une erreur s\'est produite lors du traitement du gtfs',
             color: 'red',
             icon: <IconX />
           })
         }
+        notifications.hide('loading');
         setLoading(false)
+
       })
   }, [])
 
@@ -101,7 +105,7 @@ function App() {
             {
               currentRoute === null ? <Stack align='center' justify='center' className='h-full'>
                 <IconMap2 size={88} opacity={0.2} color='gray' />
-                <Text fz={18} opacity={0.5} color='gray'>Aucune route sélectionnée</Text>
+                <Text align='center' fz={18} opacity={0.5} color='gray'>Aucune route sélectionnée</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
@@ -119,7 +123,7 @@ function App() {
                         { label: 'Aller', value: 'aller' },
                         { label: 'Retour', value: 'retour' },
                       ]}
-                      color='gray'
+                      color='cyan'
                       onChange={(value: "aller" | "retour") => {
                         setCurrentTripDir(value)
                         setCurrentStop(0)
@@ -130,7 +134,7 @@ function App() {
                   <Timeline style={{ maxHeight: "100vh" }} active={gtfsData[currentRoute][currentTripDir].stops.length} bulletSize={30} lineWidth={1}>
                     {
                       gtfsData[currentRoute][currentTripDir].stops.map((stop: Stop, index: number) =>
-                        <Timeline.Item color='gray' key={index} bullet={<Avatar variant={currentStop == index ? 'filled' : 'light'} color={currentStop == index ? 'green' : 'gray'} className='cursor-pointer' onClick={() => {
+                        <Timeline.Item color='gray' key={index} bullet={<Avatar variant={currentStop == index ? 'filled' : 'light'} color={currentStop == index ? 'cyan' : 'gray'} className='cursor-pointer' onClick={() => {
                           setMapCenter([stop.lat, stop.lon])
                           setMapZoom(18)
                           setCurrentStop(index)
