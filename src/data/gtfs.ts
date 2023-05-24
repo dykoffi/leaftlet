@@ -21,13 +21,10 @@ export interface Stop {
 }
 declare global {
   interface Window {
-    getGTFSData: () => Data;
     gtfsFile: string;
+    leaflet: {
+      zoom: number;
+      center: [number, number];
+    }
   }
-}
-
-export function getGTFSData(): Promise<Data> {
-  return new Promise((resolve, reject) => {
-    resolve(window.getGTFSData())
-  })
 }

@@ -1,17 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gtfs Maps</title>
-  <!-- <script> window.APPLICATION = % APPLICATION % </script> -->
-  <script> window.gtfsFile = "https://raw.githubusercontent.com/dykoffi/leaftlet/main/abidjan.zip" </script>
+  <meta charset="utf-8">
+  <title>Carte GTFS</title>
+  <title lang="en">GTFS Map</title>
+
+  <meta name="thumbnail" content="logo.png">
+  <meta name="application-name" content="gtfs-map">
+  <meta name="application-name" lang="en" content="gtfs-map">
+  <meta name="description" content="Application de visualisation des données de transport à partir de fichier gtfs">
+  <meta name="description" lang="en" content="Application to visualize transport data from gtfs files">
+  <meta name="keywords" content="gtfs, transport">
+  <meta name="keywords" lang="en" content="gtfs, transport">
+  <meta name="vocabulary-accept" content="">
+  <meta name="vocabulary-require" content="">
+  
+  <script type="text/javascript">window.APPLICATION=%APPLICATION%</script>
 </head>
 
 <body>
   <div id="root"></div>
+  <script>
+    let application = window.APPLICATION
+    let mapZoom = 2
+    let initialLat = 25.3241665257384
+    let initialLng = 20.25114742174959
+    let gtfsFile = ""
+    if (application && application.configuration) {
+      let config = application.configuration
+
+      mapZoom = config.initialMapInfo?.mapZoom || mapZoom
+      initialLat = config.initialMapInfo?.mapCenterLat || initialLat
+      initialLng = config.initialMapInfo?.mapCenterLng || initialLng
+
+      if (config.attachments && config.attachments[0] && config.datasets[0].attachments) {
+        gtfsFile = config.attachments[0].url
+      }
+    }
+    let mapCenter = [initialLat, initialLng]
+  </script>
+  <script> window.gtfsFile = gtfsFile </script>
+  <script> window.leaflet = { zoom: mapZoom, center: mapCenter }</script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
