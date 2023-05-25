@@ -10,7 +10,6 @@
     "docker:build": "docker build -t europe-west3-docker.pkg.dev/dev-clients-307710/gtfs/web ."
   },
   "dependencies": {
-    "@data-fair/dev-server": "^1.8.4",
     "@emotion/react": "^11.10.6",
     "@mantine/core": "^6.0.11",
     "@mantine/hooks": "^6.0.11",

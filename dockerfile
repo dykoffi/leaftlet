@@ -7,4 +7,4 @@ COPY logo.png ./
 
 EXPOSE 8000
 
-CMD serve -sp 8000
+CMD serve --cors -sp 8000

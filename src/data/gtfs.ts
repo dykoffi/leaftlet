@@ -1,6 +1,6 @@
 interface Trip {
   shapes: [number, number][]
-  stops: Stop[]
+  stops: { [x: string]: Stop }
 }
 
 export interface RouteData {
@@ -22,6 +22,7 @@ export interface Stop {
 declare global {
   interface Window {
     gtfsFile: string;
+    gtfsData: string;
     leaflet: {
       zoom: number;
       center: [number, number];

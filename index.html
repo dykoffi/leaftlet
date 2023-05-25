@@ -15,17 +15,17 @@
   <meta name="keywords" lang="en" content="gtfs, transport">
   <meta name="vocabulary-accept" content="">
   <meta name="vocabulary-require" content="">
-  
+
   <script type="text/javascript">window.APPLICATION=%APPLICATION%</script>
 </head>
 
 <body>
   <div id="root"></div>
   <script>
-    let application = window.APPLICATION
-    let mapZoom = 2
+      let application = window.APPLICATION
+    let mapZoom = 3
     let initialLat = 25.3241665257384
-    let initialLng = 20.25114742174959
+    let initialLng = 23.73046875
     let gtfsFile = ""
     if (application && application.configuration) {
       let config = application.configuration
@@ -34,13 +34,24 @@
       initialLat = config.initialMapInfo?.mapCenterLat || initialLat
       initialLng = config.initialMapInfo?.mapCenterLng || initialLng
 
-      if (config.attachments && config.attachments[0] && config.datasets[0].attachments) {
+      if (config.attachments && config.attachments[0] && config.datasets[0] && config.datasets[0].attachments) {
         gtfsFile = config.attachments[0].url
       }
     }
     let mapCenter = [initialLat, initialLng]
   </script>
   <script> window.gtfsFile = gtfsFile </script>
+  <script src="wasm_exec.js"></script>
+  <script>
+
+    const go = new Go();
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+      go.run(result.instance);
+    });
+
+    window.gtfsData = [1,2,3,4,5,6]
+
+  </script>
   <script> window.leaflet = { zoom: mapZoom, center: mapCenter }</script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
