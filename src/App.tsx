@@ -81,10 +81,13 @@ function App() {
 
   useEffect(() => {
 
-    setTimeout(() => {
+    if (!window.gtfsData) {
+      setTimeout(() => {
+        setReload(reload + 1)
+      }, 3000);
+    } else {
       setGtfsData(JSON.parse(window.gtfsData))
-    }, 3000);
-
+    }
 
 
 

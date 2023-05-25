@@ -2,8 +2,10 @@ FROM dykoffi/node-serve:light as release
 
 WORKDIR /app
 COPY dist ./
-COPY config-schema.json ./
 COPY logo.png ./
+COPY wasm_exec.js ./
+COPY config-schema.json ./
+COPY main.wasm ./
 
 EXPOSE 8000
 
