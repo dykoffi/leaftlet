@@ -17,6 +17,7 @@ export interface Stop {
   name: string
   lat: number
   lon: number
+  sequence: number
   times: [string, string][]
 }
 declare global {

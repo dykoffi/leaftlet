@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react'
 import { LatLngExpression, icon } from 'leaflet'
 import { IconMap2, IconX } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
+import _ from "lodash"
 
-function App() {
+function App(): JSX.Element {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [search, setSearch] = useState<string>("")
@@ -16,8 +17,7 @@ function App() {
   const [mapZoom, setMapZoom] = useState<number>(window.leaflet.zoom)
   const [reload, setReload] = useState<number>(0)
   const [currentRoute, setCurrentRoute] = useState<string | null>(null)
-  const [currentStop, setCurrentStop] = useState<string>("")
-  const [stopKeys, setStopKeys] = useState<string[]>([])
+  const [currentStop, setCurrentStop] = useState<number>(0)
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
 
   function MapComponent({ zoom, center }: { zoom: number, center: LatLngExpression }) {
@@ -66,7 +66,7 @@ function App() {
         currentRoute === null ? <></> :
           <>
             {
-              Object.values(gtfsData[currentRoute][currentTripDir].stops).map((stop: any, index: number) =>
+              Object.values(_.sortBy(gtfsData[currentRoute][currentTripDir].stops, ["sequence"])).map((stop: any, index: number) =>
                 <Marker icon={iconDefault} key={index} position={[stop.lat, stop.lon]} >
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
                     ({index + 1}) {stop.name}
@@ -80,44 +80,15 @@ function App() {
   }
 
   useEffect(() => {
-    setLoading(true);
-    notifications.show({
-      id: 'loading',
-      title: "Notifications",
-      message: "Traitement du fichier gtfs en cours",
-      loading: true,
-      autoClose: false,
-    })
     if (!window.gtfsData) {
       setTimeout(() => {
         setReload(reload + 1)
       }, 3000);
     } else {
+      console.log(JSON.parse(window.gtfsData));
+
       setGtfsData(JSON.parse(window.gtfsData))
-      notifications.update({
-        id: 'loading',
-        title: 'Success',
-        message: "Fichier GTFS chargé avec success",
-        color: 'green',
-        icon: <CheckIcon />
-      })
-      setLoading(false);
-
     }
-
-
-
-
-
-    // notifications.update({
-    //   id: 'loading',
-    //   title: 'Erreur sur le fichier GTFS',
-    //   message: typeof(errors) === "string" ? <small>{errors}</small> : errors.map((err: string) => <small>{err}</small>),
-    //   color: 'red',
-    //   icon: <IconX />,
-    //   // m: 5
-    // })
-
   }, [reload])
 
   return (
@@ -134,12 +105,10 @@ function App() {
               value={search}
               radius={0}
               onChange={(value: string) => {
-                let stopIds = Object.keys(gtfsData[value].aller.stops)
-                setStopKeys(stopIds)
                 setSearch(value)
                 setCurrentRoute(value)
-                setCurrentStop(stopIds[0])
-                setMapCenter([gtfsData[value].aller.stops[stopIds[0]].lat, gtfsData[value].aller.stops[stopIds[0]].lon])
+                setCurrentStop(0)
+                setMapCenter([_.sortBy(gtfsData[value].aller.stops, ["sequence"])[0].lat, _.sortBy(gtfsData[value].aller.stops, ["sequence"])[0].lon])
                 setMapZoom(18)
                 setCurrentTripDir('aller')
               }}
@@ -172,18 +141,18 @@ function App() {
                       color='cyan'
                       onChange={(value: "aller" | "retour") => {
                         setCurrentTripDir(value)
-                        setCurrentStop(stopKeys[0])
-                        setMapCenter([gtfsData[currentRoute][value].stops[0].lat, gtfsData[currentRoute][value].stops[0].lon])
+                        setCurrentStop(0)
+                        setMapCenter([_.sortBy(gtfsData[currentRoute][value].stops, ["sequence"])[0].lat, _.sortBy(gtfsData[currentRoute][value].stops, ["sequence"])[0].lon])
                       }}
                     />
                   </Stack>
                   <Timeline style={{ maxHeight: "100vh" }} active={Object.keys(gtfsData[currentRoute][currentTripDir].stops).length} bulletSize={30} lineWidth={1}>
                     {
-                      Object.values(gtfsData[currentRoute][currentTripDir].stops).map((stop: Stop, index: number) =>
-                        <Timeline.Item color='gray' key={index} bullet={<Avatar variant={currentStop == stopKeys[index] ? 'filled' : 'light'} color={currentStop == stopKeys[index] ? 'cyan' : 'gray'} className='cursor-pointer' onClick={() => {
-                          setMapCenter([stop.lat, stop.lon])
-                          setCurrentStop(stopKeys[index])
+                      _.sortBy(gtfsData[currentRoute][currentTripDir].stops, ["sequence"]).map((stop: Stop, index: number) =>
+                        <Timeline.Item color='gray' key={index} bullet={<Avatar variant={currentStop == index ? 'filled' : 'light'} color={currentStop == index ? 'cyan' : 'gray'} className='cursor-pointer' onClick={() => {
                           setMapZoom(18)
+                          setMapCenter([stop.lat, stop.lon])
+                          setCurrentStop(index)
                         }} > {index + 1}</Avatar>} title={stop.name}>
                           {stop.times.map((time, index) => <Text key={index} size="xs" mt={4}> [{time.join(",")}]</Text>)}
                         </Timeline.Item>)
