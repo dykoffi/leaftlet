@@ -80,24 +80,34 @@ function App() {
   }
 
   useEffect(() => {
-
+    setLoading(true);
+    notifications.show({
+      id: 'loading',
+      title: "Notifications",
+      message: "Traitement du fichier gtfs en cours",
+      loading: true,
+      autoClose: false,
+    })
     if (!window.gtfsData) {
       setTimeout(() => {
         setReload(reload + 1)
       }, 3000);
     } else {
       setGtfsData(JSON.parse(window.gtfsData))
+      notifications.update({
+        id: 'loading',
+        title: 'Success',
+        message: "Fichier GTFS chargé avec success",
+        color: 'green',
+        icon: <CheckIcon />
+      })
+      setLoading(false);
+
     }
 
 
 
-    // notifications.show({
-    //   id: 'loading',
-    //   title: "Notifications",
-    //   message: "Traitement du fichier gtfs en cours",
-    //   loading: true,
-    //   autoClose: false,
-    // })
+
 
     // notifications.update({
     //   id: 'loading',
@@ -106,14 +116,6 @@ function App() {
     //   color: 'red',
     //   icon: <IconX />,
     //   // m: 5
-    // })
-
-    // notifications.update({
-    //   id: 'loading',
-    //   title: 'Success',
-    //   message: "Fichier GTFS chargé avec success",
-    //   color: 'green',
-    //   icon: <CheckIcon />
     // })
 
   }, [reload])
