@@ -16,7 +16,7 @@
   <meta name="vocabulary-accept" content="">
   <meta name="vocabulary-require" content="">
 
-  <script type="text/javascript">window.APPLICATION=%APPLICATION%</script>
+  <script type="text/javascript">window.APPLICATION =% APPLICATION %</script>
 </head>
 
 <body>
@@ -42,14 +42,6 @@
   </script>
   <script> window.gtfsFile = "http://localhost:8080/file/download" // gtfsFile </script>
   <script src="wasm_exec.js"></script>
-  <script>
-
-    const go = new Go();
-    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-      go.run(result.instance);
-    });
-
-  </script>
   <script> window.leaflet = { zoom: mapZoom, center: mapCenter }</script>
   <script type="module" src="/src/main.tsx"></script>
 </body>

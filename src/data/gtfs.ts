@@ -3,14 +3,17 @@ interface Trip {
   stops: { [x: string]: Stop }
 }
 
+export interface CsvFIles { [x: string]: any[] }
+
 export interface RouteData {
   route_name: string
   agency_id: string
   aller: Trip
   retour: Trip
 }
-export interface Data {
-  [x: string]: RouteData
+
+export interface Route {
+  [x: string]: string
 }
 
 export interface Stop {
@@ -23,7 +26,6 @@ export interface Stop {
 declare global {
   interface Window {
     gtfsFile: string;
-    gtfsData: string;
     leaflet: {
       zoom: number;
       center: [number, number];

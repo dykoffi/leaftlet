@@ -15,8 +15,11 @@
     "@mantine/hooks": "^6.0.11",
     "@mantine/notifications": "^6.0.11",
     "@tabler/icons-react": "^2.18.0",
+    "@types/papaparse": "^5.3.7",
+    "jszip": "^3.10.1",
     "leaflet": "^1.9.0",
     "lodash": "^4.17.21",
+    "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1"

@@ -1,24 +1,35 @@
 import { MapContainer, TileLayer, Polyline, Marker, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Data, Stop } from './data/gtfs'
+import { CsvFIles, Data, Route, RouteData, Stop } from './data/gtfs'
 import { Avatar, CheckIcon, Grid, LoadingOverlay, SegmentedControl, Select, Stack, Text, Timeline } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LatLngExpression, icon } from 'leaflet'
 import { IconMap2, IconX } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import _ from "lodash"
+import { CheckZipRequiredFiles, extractFiles } from './data/process'
 
 function App(): JSX.Element {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [search, setSearch] = useState<string>("")
-  const [gtfsData, setGtfsData] = useState<Data>({})
+  const [csvFiles, setCsvFiles] = useState<CsvFIles>({})
+  const [gtfsRoutes, setGtfsRoutes] = useState<{ value: string, label: string }[]>([])
   const [mapCenter, setMapCenter] = useState<[number, number]>(window.leaflet.center)
   const [mapZoom, setMapZoom] = useState<number>(window.leaflet.zoom)
-  const [reload, setReload] = useState<number>(0)
-  const [currentRoute, setCurrentRoute] = useState<string | null>(null)
+  const [currentRoute, setCurrentRoute] = useState<RouteData>()
   const [currentStop, setCurrentStop] = useState<number>(0)
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
+
+  const getRouteData: Worker = useMemo(
+    () => new Worker(new URL("./workers/getRouteData.ts", import.meta.url)),
+    []
+  );
+
+  const getRoutesList: Worker = useMemo(
+    () => new Worker(new URL("./workers/getRoutesList.ts", import.meta.url)),
+    []
+  );
 
   function MapComponent({ zoom, center }: { zoom: number, center: LatLngExpression }) {
 
@@ -63,33 +74,59 @@ function App(): JSX.Element {
         attribution={`center : [${currentCenter.toString()}], Zoom:${currentZoom} `}
       />
       {
-        currentRoute === null ? <></> :
+        currentRoute === undefined ? <></> :
           <>
             {
-              Object.values(_.sortBy(gtfsData[currentRoute][currentTripDir].stops, ["sequence"])).map((stop: any, index: number) =>
+              Object.values(_.sortBy(currentRoute[currentTripDir].stops, ["sequence"])).map((stop: any, index: number) =>
                 <Marker icon={iconDefault} key={index} position={[stop.lat, stop.lon]} >
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
                     ({index + 1}) {stop.name}
                   </Tooltip>
                 </Marker>)
             }
-            <Polyline pathOptions={{ color: "teal", opacity: 0.45, weight: 10 }} positions={gtfsData[currentRoute][currentTripDir].shapes} />
+            <Polyline pathOptions={{ color: "teal", opacity: 0.45, weight: 10 }} positions={currentRoute[currentTripDir].shapes} />
           </>
       }
     </>
   }
 
   useEffect(() => {
-    if (!window.gtfsData) {
-      setTimeout(() => {
-        setReload(reload + 1)
-      }, 3000);
-    } else {
-      console.log(JSON.parse(window.gtfsData));
+    const url = window.gtfsFile;
+    extractFiles(url)
+      .then(result => {
 
-      setGtfsData(JSON.parse(window.gtfsData))
+        setTimeout(() => {
+          getRoutesList.postMessage(JSON.stringify(result))
+        }, 1000)
+
+        setCsvFiles(result)
+
+        // processRoutes(result)
+        //   .then(routes => {
+        //     setGtfsRoutes(routes)
+        //   })
+
+      })
+      .catch(error => {
+        console.error('Erreur lors de l\'extraction des fichiers:', error);
+      });
+
+  }, [])
+
+  useEffect(() => {
+    getRoutesList.onmessage = (e: MessageEvent<string>) => {
+      setGtfsRoutes(JSON.parse(e.data))
     }
-  }, [reload])
+    getRouteData.onmessage = (e: MessageEvent<string>) => {
+      let route = JSON.parse(e.data)
+      setCurrentRoute(route)
+      setCurrentRoute(route)
+      setCurrentStop(0)
+      setMapCenter([_.sortBy(route.aller.stops, ["sequence"])[0].lat, _.sortBy(route.aller.stops, ["sequence"])[0].lon])
+      setMapZoom(18)
+      setCurrentTripDir('aller')
+    }
+  }, [])
 
   return (
     <>
@@ -99,35 +136,29 @@ function App(): JSX.Element {
             <Select
               label="Selectionnez une route"
               placeholder="Recherchez une route"
-              data={!!gtfsData ? Object.keys(gtfsData) : []}
+              data={gtfsRoutes}
               size='sm'
               variant='filled'
-              value={search}
               radius={0}
               onChange={(value: string) => {
-                setSearch(value)
-                setCurrentRoute(value)
-                setCurrentStop(0)
-                setMapCenter([_.sortBy(gtfsData[value].aller.stops, ["sequence"])[0].lat, _.sortBy(gtfsData[value].aller.stops, ["sequence"])[0].lon])
-                setMapZoom(18)
-                setCurrentTripDir('aller')
+                getRouteData.postMessage(JSON.stringify({ csvFiles, routeId: value }))
               }}
               searchable
               maxDropdownHeight={400}
               nothingFound="Aucun resultat"
             />
             {
-              currentRoute === null ? <Stack align='center' justify='center' className='h-full'>
+              currentRoute === undefined ? <Stack align='center' justify='center' className='h-full'>
                 <IconMap2 size={50} opacity={0.4} color='gray' />
                 <Text align='center' fz={15} opacity={0.5} color='gray'>Aucune route sélectionnée</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
                     <Text className='text-gray-500' fz={20} fw={800}>
-                      {gtfsData[currentRoute].route_name}
+                      {currentRoute.route_name}
                     </Text>
                     <Text className='text-gray-500'>
-                      {gtfsData[currentRoute].agency_id}
+                      {currentRoute.agency_id}
                     </Text>
                   </Stack>
                   <Stack>
@@ -142,13 +173,13 @@ function App(): JSX.Element {
                       onChange={(value: "aller" | "retour") => {
                         setCurrentTripDir(value)
                         setCurrentStop(0)
-                        setMapCenter([_.sortBy(gtfsData[currentRoute][value].stops, ["sequence"])[0].lat, _.sortBy(gtfsData[currentRoute][value].stops, ["sequence"])[0].lon])
+                        setMapCenter([_.sortBy(currentRoute[value].stops, ["sequence"])[0].lat, _.sortBy(currentRoute[value].stops, ["sequence"])[0].lon])
                       }}
                     />
                   </Stack>
-                  <Timeline style={{ maxHeight: "100vh" }} active={Object.keys(gtfsData[currentRoute][currentTripDir].stops).length} bulletSize={30} lineWidth={1}>
+                  <Timeline style={{ maxHeight: "100vh" }} active={Object.keys(currentRoute[currentTripDir].stops).length} bulletSize={30} lineWidth={1}>
                     {
-                      _.sortBy(gtfsData[currentRoute][currentTripDir].stops, ["sequence"]).map((stop: Stop, index: number) =>
+                      _.sortBy(currentRoute[currentTripDir].stops, ["sequence"]).map((stop: Stop, index: number) =>
                         <Timeline.Item color='gray' key={index} bullet={<Avatar variant={currentStop == index ? 'filled' : 'light'} color={currentStop == index ? 'cyan' : 'gray'} className='cursor-pointer' onClick={() => {
                           setMapZoom(18)
                           setMapCenter([stop.lat, stop.lon])
