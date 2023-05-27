@@ -3,7 +3,6 @@ import { RouteData } from "../data/gtfs";
 self.onmessage = (e: MessageEvent<string>) => {
 
   let data = JSON.parse(e.data);
-  console.log(data);
 
   let csvFiles = data.csvFiles;
   let routeId = data.routeId;

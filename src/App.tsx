@@ -11,10 +11,8 @@ import { CheckZipRequiredFiles, extractFiles } from './data/process'
 
 function App(): JSX.Element {
 
-  const [loading, setLoading] = useState<boolean>(false)
   const [loadingRoute, setLoadingRoute] = useState<boolean>(false)
   const [loadingRouteData, setLoadingRouteData] = useState<boolean>(false)
-  const [search, setSearch] = useState<string>("")
   const [csvFiles, setCsvFiles] = useState<CsvFIles>({})
   const [gtfsRoutes, setGtfsRoutes] = useState<{ value: string, label: string }[]>([])
   const [mapCenter, setMapCenter] = useState<[number, number]>(window.leaflet.center)
@@ -127,6 +125,8 @@ function App(): JSX.Element {
         setMapCenter([_.sortBy(route.retour.stops, ["sequence"])[0].lat, _.sortBy(route.retour.stops, ["sequence"])[0].lon])
         setCurrentTripDir('retour')
       }
+      setLoadingRouteData(false)
+
     }
   }, [])
 
@@ -136,7 +136,7 @@ function App(): JSX.Element {
         <Grid.Col span={3} className='h-screen overflow-y-scroll shadow-2xl'>
           <Stack p={30} spacing={25} className='h-full'>
             <Select
-              disabled={loadingRoute}
+              disabled={loadingRoute || loadingRouteData}
               label="Selectionnez une route"
               placeholder="Recherchez une route"
               data={gtfsRoutes}
@@ -144,6 +144,7 @@ function App(): JSX.Element {
               variant='filled'
               radius={0}
               onChange={(value: string) => {
+                setLoadingRouteData(true)
                 getRouteData.postMessage(JSON.stringify({ csvFiles, routeId: value }))
               }}
               searchable
@@ -202,7 +203,7 @@ function App(): JSX.Element {
           </MapContainer>
         </Grid.Col>
       </Grid>
-      <LoadingOverlay loaderProps={{ size: 'lg', color: "teal", variant: 'dots' }} visible={loading} overlayBlur={2} />
+      <LoadingOverlay loaderProps={{ size: 'lg', color: "teal", variant: 'dots' }} visible={loadingRouteData} overlayBlur={2} />
     </>
   )
 
