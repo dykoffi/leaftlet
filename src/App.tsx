@@ -114,15 +114,19 @@ function App(): JSX.Element {
       setLoadingRoute(false)
     }
     getRouteData.onmessage = (e: MessageEvent<string>) => {
-      let route = JSON.parse(e.data)
-      console.log(_.sortBy(route.aller.stops, ["sequence"]));
-      
+      let route: RouteData = JSON.parse(e.data)
       setCurrentRoute(route)
       setCurrentRoute(route)
       setCurrentStop(0)
-      setMapCenter([_.sortBy(route.aller.stops, ["sequence"])[0].lat, _.sortBy(route.aller.stops, ["sequence"])[0].lon])
       setMapZoom(18)
-      setCurrentTripDir('aller')
+
+      if (Object.keys(route.aller.stops).length > 0) {
+        setMapCenter([_.sortBy(route.aller.stops, ["sequence"])[0].lat, _.sortBy(route.aller.stops, ["sequence"])[0].lon])
+        setCurrentTripDir('aller')
+      } else if (Object.keys(route.retour.stops).length) {
+        setMapCenter([_.sortBy(route.retour.stops, ["sequence"])[0].lat, _.sortBy(route.retour.stops, ["sequence"])[0].lon])
+        setCurrentTripDir('retour')
+      }
     }
   }, [])
 
@@ -149,7 +153,7 @@ function App(): JSX.Element {
             {
               currentRoute === undefined ? <Stack align='center' justify='center' className='h-full'>
                 <IconMap2 className={loadingRoute ? "animate-ping" : ""} size={50} opacity={0.4} color='gray' />
-                <Text align='center' fz={15} opacity={0.5} color='gray'>{ loadingRoute ? "Chargement des routes ..." :  "Aucune route sélectionnée"}</Text>
+                <Text align='center' fz={15} opacity={0.5} color='gray'>{loadingRoute ? "Chargement des routes ..." : "Aucune route sélectionnée"}</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
@@ -165,8 +169,8 @@ function App(): JSX.Element {
                       value={currentTripDir}
                       size='sx'
                       data={[
-                        { label: 'Aller', value: 'aller' },
-                        { label: 'Retour', value: 'retour' },
+                        { label: 'Aller', value: 'aller', disabled: Object.keys(currentRoute.aller.stops).length === 0 },
+                        { label: 'Retour', value: 'retour', disabled: Object.keys(currentRoute.retour.stops).length === 0 },
                       ]}
                       color='cyan'
                       onChange={(value: "aller" | "retour") => {
