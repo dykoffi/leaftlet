@@ -61,7 +61,7 @@ self.onmessage = (e: MessageEvent<string>) => {
                   let lat = parseFloat(stop.stop_lat)
                   let lon = parseFloat(stop.stop_lon)
                   let name = stop.stop_name
-                  let sequence = stopTime.sequence
+                  let sequence = parseInt(stopTime.stop_sequence)
                   let times: [string, string][] = [["", ""]]
 
                   if (parseInt(tripDir) == 0) {

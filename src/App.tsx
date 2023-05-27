@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Polyline, Marker, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { CsvFIles, Data, Route, RouteData, Stop } from './data/gtfs'
+import { CsvFIles, RouteData, Stop } from './data/gtfs'
 import { Avatar, CheckIcon, Grid, LoadingOverlay, SegmentedControl, Select, Stack, Text, Timeline } from '@mantine/core'
 import { useEffect, useMemo, useState } from 'react'
 import { LatLngExpression, icon } from 'leaflet'
@@ -12,6 +12,8 @@ import { CheckZipRequiredFiles, extractFiles } from './data/process'
 function App(): JSX.Element {
 
   const [loading, setLoading] = useState<boolean>(false)
+  const [loadingRoute, setLoadingRoute] = useState<boolean>(false)
+  const [loadingRouteData, setLoadingRouteData] = useState<boolean>(false)
   const [search, setSearch] = useState<string>("")
   const [csvFiles, setCsvFiles] = useState<CsvFIles>({})
   const [gtfsRoutes, setGtfsRoutes] = useState<{ value: string, label: string }[]>([])
@@ -77,10 +79,10 @@ function App(): JSX.Element {
         currentRoute === undefined ? <></> :
           <>
             {
-              Object.values(_.sortBy(currentRoute[currentTripDir].stops, ["sequence"])).map((stop: any, index: number) =>
+              Object.values(_.sortBy(currentRoute[currentTripDir].stops, ["sequence"])).map((stop, index: number) =>
                 <Marker icon={iconDefault} key={index} position={[stop.lat, stop.lon]} >
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
-                    ({index + 1}) {stop.name}
+                    ({stop.sequence}) {stop.name}
                   </Tooltip>
                 </Marker>)
             }
@@ -94,18 +96,11 @@ function App(): JSX.Element {
     const url = window.gtfsFile;
     extractFiles(url)
       .then(result => {
-
+        setLoadingRoute(true)
         setTimeout(() => {
           getRoutesList.postMessage(JSON.stringify(result))
         }, 1000)
-
         setCsvFiles(result)
-
-        // processRoutes(result)
-        //   .then(routes => {
-        //     setGtfsRoutes(routes)
-        //   })
-
       })
       .catch(error => {
         console.error('Erreur lors de l\'extraction des fichiers:', error);
@@ -116,9 +111,12 @@ function App(): JSX.Element {
   useEffect(() => {
     getRoutesList.onmessage = (e: MessageEvent<string>) => {
       setGtfsRoutes(JSON.parse(e.data))
+      setLoadingRoute(false)
     }
     getRouteData.onmessage = (e: MessageEvent<string>) => {
       let route = JSON.parse(e.data)
+      console.log(_.sortBy(route.aller.stops, ["sequence"]));
+      
       setCurrentRoute(route)
       setCurrentRoute(route)
       setCurrentStop(0)
@@ -134,6 +132,7 @@ function App(): JSX.Element {
         <Grid.Col span={3} className='h-screen overflow-y-scroll shadow-2xl'>
           <Stack p={30} spacing={25} className='h-full'>
             <Select
+              disabled={loadingRoute}
               label="Selectionnez une route"
               placeholder="Recherchez une route"
               data={gtfsRoutes}
@@ -149,8 +148,8 @@ function App(): JSX.Element {
             />
             {
               currentRoute === undefined ? <Stack align='center' justify='center' className='h-full'>
-                <IconMap2 size={50} opacity={0.4} color='gray' />
-                <Text align='center' fz={15} opacity={0.5} color='gray'>Aucune route sélectionnée</Text>
+                <IconMap2 className={loadingRoute ? "animate-ping" : ""} size={50} opacity={0.4} color='gray' />
+                <Text align='center' fz={15} opacity={0.5} color='gray'>{ loadingRoute ? "Chargement des routes ..." :  "Aucune route sélectionnée"}</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
@@ -184,7 +183,7 @@ function App(): JSX.Element {
                           setMapZoom(18)
                           setMapCenter([stop.lat, stop.lon])
                           setCurrentStop(index)
-                        }} > {index + 1}</Avatar>} title={stop.name}>
+                        }} > {stop.sequence}</Avatar>} title={stop.name}>
                           {stop.times.map((time, index) => <Text key={index} size="xs" mt={4}> [{time.join(",")}]</Text>)}
                         </Timeline.Item>)
                     }
