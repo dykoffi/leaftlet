@@ -7,7 +7,6 @@ self.onmessage = (e: MessageEvent<string>) => {
   let csvFiles = data.csvFiles;
   let routeId = data.routeId;
 
-
   let routes = csvFiles["routes.txt"]
   let stops = csvFiles["stops.txt"]
   let trips = csvFiles["trips.txt"]
@@ -61,11 +60,21 @@ self.onmessage = (e: MessageEvent<string>) => {
                   let lon = parseFloat(stop.stop_lon)
                   let name = stop.stop_name
                   let sequence = parseInt(stopTime.stop_sequence)
-                  let times: [string, string][] = [["", ""]]
+                  let time: [string, string] = [stopTime.stop_sequence, stopTime.stop_sequence]
+                  let times: [string, string][] = []
+
+                  // stop
+
 
                   if (parseInt(tripDir) == 0) {
+                    if (res.aller.stops[stop.stop_id]) {
+                      times = [...res.aller.stops[stop.stop_id].times, time]
+                    }
                     res.aller.stops[stop.stop_id] = { lat, lon, name, sequence, times }
                   } else {
+                    if (res.aller.stops[stop.stop_id]) {
+                      times = [...res.aller.stops[stop.stop_id].times, time]
+                    }
                     res.retour.stops[stop.stop_id] = { lat, lon, name, sequence, times }
                   }
                 })

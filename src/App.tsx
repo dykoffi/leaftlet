@@ -113,6 +113,8 @@ function App(): JSX.Element {
     }
     getRouteData.onmessage = (e: MessageEvent<string>) => {
       let route: RouteData = JSON.parse(e.data)
+      console.log(route);
+
       setCurrentRoute(route)
       setCurrentRoute(route)
       setCurrentStop(0)
@@ -188,8 +190,9 @@ function App(): JSX.Element {
                           setMapZoom(18)
                           setMapCenter([stop.lat, stop.lon])
                           setCurrentStop(index)
-                        }} > {stop.sequence}</Avatar>} title={stop.name}>
-                          {stop.times.map((time, index) => <Text key={index} size="xs" mt={4}> [{time.join(",")}]</Text>)}
+                        }} > {stop.sequence}</Avatar>} title={""}>
+                          <small>{stop.name}</small>
+                          {/* {stop.times.map((time, index) => <Text key={index} size="xs" mt={4}> [{time.join(",")}]</Text>)} */}
                         </Timeline.Item>)
                     }
                   </Timeline>

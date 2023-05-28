@@ -1,3 +1,5 @@
+import { NOTHING } from "./nothing"
+
 self.onmessage = (e: MessageEvent<string>) => {
     const csvFiles = JSON.parse(e.data)
     let routesFile = csvFiles["routes.txt"]
