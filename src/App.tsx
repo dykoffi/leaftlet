@@ -1,8 +1,8 @@
 import { MapContainer, TileLayer, Polyline, Marker, Tooltip, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CsvFIles, RouteData, Stop } from './data/gtfs'
-import { Avatar, CheckIcon, Grid, LoadingOverlay, SegmentedControl, Select, Stack, Text, Timeline } from '@mantine/core'
-import { useEffect, useMemo, useState } from 'react'
+import { Avatar, CheckIcon, Grid, LoadingOverlay, Paper, SegmentedControl, Select, Stack, Text, Timeline } from '@mantine/core'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { LatLngExpression, icon } from 'leaflet'
 import { IconMap2, IconX } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
@@ -19,6 +19,7 @@ function App(): JSX.Element {
   const [mapZoom, setMapZoom] = useState<number>(window.leaflet.zoom)
   const [currentRoute, setCurrentRoute] = useState<RouteData>()
   const [currentStop, setCurrentStop] = useState<number>(0)
+  const [currentStopData, setCurrentStopData] = useState<Stop>()
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
 
   const getRouteData: Worker = useMemo(
@@ -81,6 +82,7 @@ function App(): JSX.Element {
                 <Marker icon={iconDefault} key={index} position={[stop.lat, stop.lon]} >
                   <Tooltip direction="top" offset={[-15, -15]} permanent>
                     ({stop.sequence}) {stop.name}
+                    <br />
                   </Tooltip>
                 </Marker>)
             }
@@ -121,9 +123,12 @@ function App(): JSX.Element {
       if (Object.keys(route.aller.stops).length > 0) {
         setMapCenter([_.sortBy(route.aller.stops, ["sequence"])[0].lat, _.sortBy(route.aller.stops, ["sequence"])[0].lon])
         setCurrentTripDir('aller')
+        setCurrentStopData(_.sortBy(route.aller.stops, ["sequence"])[0])
       } else if (Object.keys(route.retour.stops).length) {
         setMapCenter([_.sortBy(route.retour.stops, ["sequence"])[0].lat, _.sortBy(route.retour.stops, ["sequence"])[0].lon])
         setCurrentTripDir('retour')
+        setCurrentStopData(_.sortBy(route.retour.stops, ["sequence"])[0])
+
       }
       setLoadingRouteData(false)
 
@@ -132,6 +137,15 @@ function App(): JSX.Element {
 
   return (
     <>
+      {
+        currentStopData != undefined &&
+        <Paper style={{ zIndex: 10000, maxHeight: "25vh", overflowY: "scroll", position: "absolute", top: "0.5cm", right: "0.5cm", padding: "0.3cm", width: "15vw", opacity: 0.9 }}>
+          <Text fw={800}>({currentStopData.sequence}) {currentStopData.name}</Text>
+          <Text color='dimmed' fz={"sm"}>Horaires de passages</Text>
+          {currentStopData.times.map((time, index: number) => <Fragment key={index}><small>{time}</small><br /></Fragment>)}
+        </Paper>
+      }
+
       <Grid gutter={0}>
         <Grid.Col span={3} className='h-screen overflow-y-scroll shadow-2xl'>
           <Stack p={30} spacing={25} className='h-full'>
@@ -180,6 +194,7 @@ function App(): JSX.Element {
                         setCurrentTripDir(value)
                         setCurrentStop(0)
                         setMapCenter([_.sortBy(currentRoute[value].stops, ["sequence"])[0].lat, _.sortBy(currentRoute[value].stops, ["sequence"])[0].lon])
+                        setCurrentStopData(_.sortBy(currentRoute[value].stops, ["sequence"])[0])
                       }}
                     />
                   </Stack>
@@ -190,9 +205,9 @@ function App(): JSX.Element {
                           setMapZoom(18)
                           setMapCenter([stop.lat, stop.lon])
                           setCurrentStop(index)
+                          setCurrentStopData(stop)
                         }} > {stop.sequence}</Avatar>} title={""}>
                           <small>{stop.name}</small>
-                          {/* {stop.times.map((time, index) => <Text key={index} size="xs" mt={4}> [{time.join(",")}]</Text>)} */}
                         </Timeline.Item>)
                     }
                   </Timeline>
