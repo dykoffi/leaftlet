@@ -96,7 +96,7 @@ function App(): JSX.Element {
       .then(result => {
         setLoadingRoute(true)
         setTimeout(() => {
-          getRoutesList.postMessage(JSON.stringify(result))
+          getRoutesList.postMessage(JSON.stringify(result["routes.txt"]))
         }, 1000)
         setCsvFiles(result)
       })
@@ -113,8 +113,6 @@ function App(): JSX.Element {
     }
     getRouteData.onmessage = (e: MessageEvent<string>) => {
       let route: RouteData = JSON.parse(e.data)
-      console.log(route);
-
       setCurrentRoute(route)
       setCurrentRoute(route)
       setCurrentStop(0)
@@ -146,8 +144,10 @@ function App(): JSX.Element {
               variant='filled'
               radius={0}
               onChange={(value: string) => {
-                setLoadingRouteData(true)
-                getRouteData.postMessage(JSON.stringify({ csvFiles, routeId: value }))
+                if (currentRoute?.route_id !== value) {
+                  setLoadingRouteData(true)
+                  getRouteData.postMessage(JSON.stringify({ csvFiles, routeId: value }))
+                }
               }}
               searchable
               maxDropdownHeight={400}

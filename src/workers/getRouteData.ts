@@ -23,6 +23,7 @@ self.onmessage = (e: MessageEvent<string>) => {
 
       let res: RouteData = {
         agency_id: agencyId,
+        route_id: routeId,
         route_name: routeName,
         aller: {
           shapes: [],
@@ -60,8 +61,8 @@ self.onmessage = (e: MessageEvent<string>) => {
                   let lon = parseFloat(stop.stop_lon)
                   let name = stop.stop_name
                   let sequence = parseInt(stopTime.stop_sequence)
-                  let time: [string, string] = [stopTime.stop_sequence, stopTime.stop_sequence]
-                  let times: [string, string][] = []
+                  let time: string = `${stopTime.arrival_time} - ${stopTime.departure_time}`
+                  let times: string[] = []
 
                   // stop
 

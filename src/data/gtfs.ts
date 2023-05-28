@@ -8,6 +8,7 @@ export interface CsvFIles { [x: string]: any[] }
 export interface RouteData {
   route_name: string
   agency_id: string
+  route_id: string
   aller: Trip
   retour: Trip
 }
@@ -21,7 +22,7 @@ export interface Stop {
   lat: number
   lon: number
   sequence: number
-  times: [string, string][]
+  times: string[]
 }
 declare global {
   interface Window {
