@@ -21,42 +21,30 @@ function App(): JSX.Element {
   const [currentStop, setCurrentStop] = useState<number>(0)
   const [currentStopData, setCurrentStopData] = useState<Stop>()
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
-
   const getRouteData: Worker = useMemo(
-    () => new Worker(new URL("./workers/getRouteData.ts", import.meta.url)),
+    () => new Worker(
+      import.meta.env.PROD ?
+        import.meta.env.VITE_ROUTE_DATA_WORKER_URL :
+        new URL("./workers/getRouteData.ts", import.meta.url)
+    ),
     []
   );
 
   const getRoutesList: Worker = useMemo(
-    () => new Worker(new URL("./workers/getRoutesList.ts", import.meta.url)),
+    () => new Worker(
+      import.meta.env.PROD ?
+        import.meta.env.VITE_ROUTE_DATA_WORKER_URL :
+        new URL("./workers/getRoutesList.ts", import.meta.url)
+    ),
     []
   );
 
-  function MapComponent({ zoom, center }: { zoom: number, center: LatLngExpression }) {
+  function MapComponent() {
 
     const map = useMap()
 
-    const [currentZoom, setCurrentZoom] = useState<number>(zoom)
-    const [currentCenter, setCurrentCenter] = useState<LatLngExpression>(center)
+    map.flyTo(mapCenter, mapZoom)
 
-    useEffect(() => {
-
-      map.setZoom(zoom)
-      map.setView(center)
-
-      map.addEventListener("zoom", (ev) => {
-        setCurrentZoom(ev.target._zoom)
-        setCurrentCenter([map.getCenter().lat, map.getCenter().lng])
-      })
-
-      map.addEventListener("dragend", (ev) => {
-        setCurrentCenter([map.getCenter().lat, map.getCenter().lng])
-      })
-
-      return () => {
-        map.removeEventListener("zoom")
-      }
-    }, [])
 
     let iconDefault = icon({
       iconSize: [25, 41],
@@ -72,7 +60,6 @@ function App(): JSX.Element {
     return <>
       <TileLayer
         url='https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-        attribution={`center : [${currentCenter.toString()}], Zoom:${currentZoom} `}
       />
       {
         currentRoute === undefined ? <></> :
@@ -216,8 +203,8 @@ function App(): JSX.Element {
           </Stack>
         </Grid.Col>
         <Grid.Col className='overflow-y-hidden h-screen' span={9}>
-          <MapContainer boxZoom style={{ height: "100vh", padding: 0 }}>
-            <MapComponent zoom={mapZoom} center={mapCenter} />
+          <MapContainer zoom={mapZoom} center={mapCenter} boxZoom style={{ height: "100vh", padding: 0 }}>
+            <MapComponent />
           </MapContainer>
         </Grid.Col>
       </Grid>

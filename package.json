@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite ",
     "build": "tsc && vite build",
+    "build:koumoul": "tsc && vite build --mode koumoul",
     "preview": "vite preview",
     "docker:build": "docker build -t europe-west3-docker.pkg.dev/dev-clients-307710/gtfs/web ."
   },
