@@ -22,19 +22,13 @@ function App(): JSX.Element {
   const [currentStopData, setCurrentStopData] = useState<Stop>()
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
   const getRouteData: Worker = useMemo(
-    () => new Worker(
-      import.meta.env.PROD ?
-        import.meta.env.VITE_ROUTE_DATA_WORKER_URL :
-        new URL("./workers/getRouteData.ts", import.meta.url)
+    () => new Worker(new URL("./workers/getRouteData.ts", import.meta.url)
     ),
     []
   );
 
   const getRoutesList: Worker = useMemo(
-    () => new Worker(
-      import.meta.env.PROD ?
-        import.meta.env.VITE_ROUTE_DATA_WORKER_URL :
-        new URL("./workers/getRoutesList.ts", import.meta.url)
+    () => new Worker(new URL("./workers/getRoutesList.ts", import.meta.url)
     ),
     []
   );
@@ -43,8 +37,7 @@ function App(): JSX.Element {
 
     const map = useMap()
 
-    map.flyTo(mapCenter, mapZoom)
-
+    map.flyTo(mapCenter, mapZoom, { animate: true, easeLinearity: 0.25, duration: 1, noMoveStart: true })
 
     let iconDefault = icon({
       iconSize: [25, 41],
