@@ -62,19 +62,17 @@ self.onmessage = (e: MessageEvent<string>) => {
                   let name = stop.stop_name
                   let sequence = parseInt(stopTime.stop_sequence)
                   let time: string = `${stopTime.arrival_time} - ${stopTime.departure_time}`
-                  let times: string[] = []
-
-                  // stop
-
-
+                  
                   if (parseInt(tripDir) == 0) {
+                    let times: string[] = []
                     if (res.aller.stops[stop.stop_id]) {
                       times = [...res.aller.stops[stop.stop_id].times, time]
                     }
                     res.aller.stops[stop.stop_id] = { lat, lon, name, sequence, times }
                   } else {
-                    if (res.aller.stops[stop.stop_id]) {
-                      times = [...res.aller.stops[stop.stop_id].times, time]
+                    let times: string[] = []
+                    if (res.retour.stops[stop.stop_id]) {
+                      times = [...res.retour.stops[stop.stop_id].times, time]
                     }
                     res.retour.stops[stop.stop_id] = { lat, lon, name, sequence, times }
                   }
