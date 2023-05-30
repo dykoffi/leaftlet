@@ -21,17 +21,9 @@ function App(): JSX.Element {
   const [currentStop, setCurrentStop] = useState<number>(0)
   const [currentStopData, setCurrentStopData] = useState<Stop>()
   const [currentTripDir, setCurrentTripDir] = useState<"aller" | "retour">("aller")
-  const getRouteData: Worker = useMemo(
-    () => new Worker(new URL("./workers/getRouteData.ts", import.meta.url)
-    ),
-    []
-  );
-
-  const getRoutesList: Worker = useMemo(
-    () => new Worker(new URL("./workers/getRoutesList.ts", import.meta.url)
-    ),
-    []
-  );
+  const getRouteData: Worker = useMemo(() => new Worker(new URL("./workers/getRouteData.ts", import.meta.url)), []);
+  const getRoutesList: Worker = useMemo(() => new Worker(new URL("./workers/getRoutesList.ts", import.meta.url)), []);
+  const processGtfsFile: Worker = useMemo(() => new Worker(new URL("./workers/processGtfsFile.ts", import.meta.url)), []);
 
   function MapComponent() {
 
@@ -74,21 +66,43 @@ function App(): JSX.Element {
 
   useEffect(() => {
     const url = window.gtfsFile;
-    extractFiles(url)
-      .then(result => {
-        setLoadingRoute(true)
-        setTimeout(() => {
-          getRoutesList.postMessage(JSON.stringify(result["routes.txt"]))
-        }, 1000)
-        setCsvFiles(result)
-      })
-      .catch(error => {
-        console.error('Erreur lors de l\'extraction des fichiers:', error);
-      });
-
+    processGtfsFile.postMessage(url);
+    notifications.show({
+      id: 'loading',
+      title: "Notifications",
+      message: "Traitement du fichier gtfs en cours",
+      loading: true,
+      autoClose: false,
+    })
   }, [])
 
   useEffect(() => {
+    processGtfsFile.onmessage = (e: MessageEvent<string>) => {
+      let result = JSON.parse(e.data)
+      if (!result.error) {
+        setCsvFiles(result)
+        setLoadingRoute(true)
+        notifications.update({
+          id: 'loading',
+          title: 'Success',
+          message: "Fichier GTFS chargé avec success",
+          color: 'green',
+          icon: <CheckIcon />
+        })
+        getRoutesList.postMessage(JSON.stringify(result["routes.txt"]))
+      } else {
+        notifications.update({
+          id: 'loading',
+          title: 'Erreur sur le fichier GTFS',
+          message: <small>{result.error}</small>,
+          color: 'red',
+          icon: <IconX />,
+          // m: 5
+        })
+      }
+
+    }
+    // processGtfsFile.onmessageerror = (e: MessageEvent<string>) => {}
     getRoutesList.onmessage = (e: MessageEvent<string>) => {
       setGtfsRoutes(JSON.parse(e.data))
       setLoadingRoute(false)
@@ -111,7 +125,6 @@ function App(): JSX.Element {
 
       }
       setLoadingRouteData(false)
-
     }
   }, [])
 
@@ -119,7 +132,7 @@ function App(): JSX.Element {
     <>
       {
         currentStopData != undefined &&
-        <Paper style={{ zIndex: 10000, maxHeight: "25vh", overflowY: "scroll", position: "absolute", top: "0.5cm", right: "0.5cm", padding: "0.3cm", width: "15vw", opacity: 0.9 }}>
+        <Paper style={{ zIndex: 1000, maxHeight: "25vh", overflowY: "scroll", position: "absolute", top: "0.5cm", right: "0.5cm", padding: "0.3cm", width: "15vw", opacity: 0.9 }}>
           <Text fw={800}>({currentStopData.sequence}) {currentStopData.name}</Text>
           <Text color='dimmed' fz={"sm"}>Horaires de passages</Text>
           {currentStopData.times.map((time, index: number) => <Fragment key={index}><small>{time}</small><br /></Fragment>)}
@@ -198,10 +211,10 @@ function App(): JSX.Element {
         <Grid.Col className='overflow-y-hidden h-screen' span={9}>
           <MapContainer zoom={mapZoom} center={mapCenter} boxZoom style={{ height: "100vh", padding: 0 }}>
             <MapComponent />
+            <LoadingOverlay zIndex={2005} loaderProps={{ size: 'lg', color: "teal", variant: 'dots' }} visible={loadingRouteData} overlayBlur={2} />
           </MapContainer>
         </Grid.Col>
       </Grid>
-      <LoadingOverlay loaderProps={{ size: 'lg', color: "teal", variant: 'dots' }} visible={loadingRouteData} overlayBlur={2} />
     </>
   )
 
