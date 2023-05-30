@@ -102,7 +102,6 @@ function App(): JSX.Element {
       }
 
     }
-    // processGtfsFile.onmessageerror = (e: MessageEvent<string>) => {}
     getRoutesList.onmessage = (e: MessageEvent<string>) => {
       setGtfsRoutes(JSON.parse(e.data))
       setLoadingRoute(false)
@@ -161,9 +160,9 @@ function App(): JSX.Element {
               nothingFound="Aucun resultat"
             />
             {
-              currentRoute === undefined ? <Stack align='center' justify='center' className='h-full'>
-                <IconMap2 className={loadingRoute ? "animate-ping" : ""} size={50} opacity={0.4} color='gray' />
-                <Text align='center' fz={15} opacity={0.5} color='gray'>{loadingRoute ? "Chargement des routes ..." : "Aucune route sélectionnée"}</Text>
+              currentRoute === undefined || loadingRouteData ? <Stack align='center' justify='center' className='h-full'>
+                <IconMap2 className={loadingRoute || loadingRouteData ? "animate-ping" : ""} size={50} opacity={0.4} color='gray' />
+                <Text align='center' fz={15} opacity={0.5} color='gray'>{loadingRoute || loadingRouteData ? "Chargement des données ..." : "Aucune route sélectionnée"}</Text>
               </Stack> :
                 <>
                   <Stack spacing={0}>
